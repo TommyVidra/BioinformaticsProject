@@ -1,0 +1,114 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Job stats:
+job                    count    min threads    max threads
+-------------------  -------  -------------  -------------
+all                        1              1              1
+create_linear_graph        1              1              1
+one_run                    5              1              1
+summarize                  1              1              1
+total                      8              1              1
+
+Select jobs to execute...
+
+[Sun May 15 14:30:00 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_onechar.gfa
+    output: results/ref10000_onechar.txt
+    jobid: 7
+    wildcards: file=ref10000, graph=onechar
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:30:00 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_snp.gfa
+    output: results/ref10000_snp.txt
+    jobid: 9
+    wildcards: file=ref10000, graph=snp
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:31:34 2022]
+Finished job 9.
+1 of 8 steps (12%) done
+Select jobs to execute...
+
+[Sun May 15 14:31:35 2022]
+rule create_linear_graph:
+    input: input/ref10000.fa
+    output: tmp/ref10000_linear.gfa
+    jobid: 6
+    wildcards: file=ref10000
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:31:35 2022]
+Finished job 6.
+2 of 8 steps (25%) done
+Select jobs to execute...
+
+[Sun May 15 14:31:35 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_linear.gfa
+    output: results/ref10000_linear.txt
+    jobid: 2
+    wildcards: file=ref10000, graph=linear
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:32:10 2022]
+Finished job 7.
+3 of 8 steps (38%) done
+Select jobs to execute...
+
+[Sun May 15 14:32:10 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_twopath.gfa
+    output: results/ref10000_twopath.txt
+    jobid: 11
+    wildcards: file=ref10000, graph=twopath
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:32:24 2022]
+Finished job 2.
+4 of 8 steps (50%) done
+Select jobs to execute...
+
+[Sun May 15 14:32:24 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_tangle.gfa
+    output: results/ref10000_tangle.txt
+    jobid: 13
+    wildcards: file=ref10000, graph=tangle
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:34:10 2022]
+Finished job 13.
+5 of 8 steps (62%) done
+[Sun May 15 14:37:13 2022]
+Finished job 11.
+6 of 8 steps (75%) done
+Select jobs to execute...
+
+[Sun May 15 14:37:13 2022]
+rule summarize:
+    input: results/ref10000_linear.txt, results/ref10000_onechar.txt, results/ref10000_snp.txt, results/ref10000_twopath.txt, results/ref10000_tangle.txt
+    output: results/ref10000_summary.txt
+    jobid: 1
+    wildcards: file=ref10000
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:37:14 2022]
+Finished job 1.
+7 of 8 steps (88%) done
+Select jobs to execute...
+
+[Sun May 15 14:37:14 2022]
+localrule all:
+    input: results/ref10000_summary.txt
+    jobid: 0
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:37:14 2022]
+Finished job 0.
+8 of 8 steps (100%) done
+Complete log: .snakemake/log/2022-05-15T143000.516166.snakemake.log

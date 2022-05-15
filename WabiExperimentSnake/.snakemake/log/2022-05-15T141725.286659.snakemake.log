@@ -1,0 +1,91 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Job stats:
+job                     count    min threads    max threads
+--------------------  -------  -------------  -------------
+all                         1              1              1
+create_linear_graph         1              1              1
+create_onechar_graph        1              1              1
+create_pbsim_reads          1              1              1
+create_tangle_graph         1              1              1
+create_twopath_graph        1              1              1
+one_run                     5              1              1
+summarize                   1              1              1
+total                      12              1              1
+
+Select jobs to execute...
+
+[Sun May 15 14:17:25 2022]
+rule create_twopath_graph:
+    input: input/ref10000.fa
+    output: tmp/ref10000_twopath.gfa
+    jobid: 12
+    wildcards: file=ref10000
+    resources: tmpdir=/tmp
+
+
+[Sun May 15 14:17:25 2022]
+rule create_tangle_graph:
+    input: input/ref10000.fa
+    output: tmp/ref10000_tangle.gfa
+    jobid: 14
+    wildcards: file=ref10000
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:17:25 2022]
+Finished job 12.
+1 of 12 steps (8%) done
+Select jobs to execute...
+
+[Sun May 15 14:17:25 2022]
+rule create_onechar_graph:
+    input: input/ref10000.fa
+    output: tmp/ref10000_onechar.gfa
+    jobid: 8
+    wildcards: file=ref10000
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:17:25 2022]
+Finished job 8.
+2 of 12 steps (17%) done
+Select jobs to execute...
+
+[Sun May 15 14:17:25 2022]
+rule create_pbsim_reads:
+    input: input/ref10000.fa
+    output: tmp/ref10000_simulatedreads.fastq
+    jobid: 3
+    wildcards: file=ref10000
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:17:26 2022]
+Finished job 3.
+3 of 12 steps (25%) done
+Select jobs to execute...
+
+[Sun May 15 14:17:26 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_snp.gfa
+    output: results/ref10000_snp.txt
+    jobid: 9
+    wildcards: file=ref10000, graph=snp
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:17:27 2022]
+Finished job 14.
+4 of 12 steps (33%) done
+Select jobs to execute...
+
+[Sun May 15 14:17:27 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_onechar.gfa
+    output: results/ref10000_onechar.txt
+    jobid: 7
+    wildcards: file=ref10000, graph=onechar
+    resources: tmpdir=/tmp
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2022-05-15T141725.286659.snakemake.log

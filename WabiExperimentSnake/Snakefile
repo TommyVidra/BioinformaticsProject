@@ -1,0 +1,122 @@
+configfile: "config.yaml"
+BCALMBINPATH = config["bcalm_bin_path"]
+BCALMCONVERTPATH = config["bcalm_convert_path"]
+PBSIMBINPATH = config["pbsim_bin_path"]
+PBSIMCONFIGPATH = config["pbsim_config_path"]
+ALIGNERBINPATH = config["aligner_bin_path"]
+
+rule all:
+	input:
+		expand("results/{file}_summary.txt", file="ref10000")
+
+rule clean:
+	shell:
+		"(rm -r tmp || true) && (rm -r results || true)"
+
+rule get_reference:
+	output:
+		"input/ref.fa",
+		temp("Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.chromosome.Chromosome.fa")
+	shadow: "shallow"
+	run:
+		shell("wget ftp://ftp.ensemblgenomes.org/pub/bacteria/release-40/fasta/bacteria_0_collection/escherichia_coli_str_k_12_substr_mg1655/dna/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.chromosome.Chromosome.fa.gz"),
+		shell("gunzip Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.chromosome.Chromosome.fa.gz")
+		shell("cut -d ' ' -f 1 < Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.chromosome.Chromosome.fa > {output}")
+
+rule get_ref_first_10000:
+	input:
+		"input/ref.fa",
+	output:
+		"input/ref10000.fa"
+	shell:
+		"head -n 1 < {input} > {output} && (sed -n 2~1p < {input} | tr -d '\\n' || true) | head -c 10000 >> {output}"
+
+rule create_linear_graph:
+	input:
+		"input/{file}.fa"
+	output:
+		"tmp/{file}_linear.gfa"
+	shell:
+		"echo 'S\t1\t' | tr -d '\n' > {output} && sed -n 2p < {input} >> {output}"
+
+rule create_onechar_graph:
+	input:
+		"input/{file}.fa"
+	output:
+		"tmp/{file}_onechar.gfa"
+	shell:
+		"sed -n 2p < {input} | scripts/create_onechar_graph.py > {output}"
+
+rule create_snp_graph:
+	input:
+		"input/{file}.fa"
+	output:
+		"tmp/{file}_snp.gfa"
+	shell:
+		"sed -n 2p < {input} | scripts/create_snps.py > {output}"
+
+rule create_twopath_graph:
+	input:
+		"input/{file}.fa"
+	output:
+		"tmp/{file}_twopath.gfa"
+	shell:
+		"sed -n 2p < {input} | scripts/create_unrealistic_twopathgraph.py > {output}"
+
+rule create_tangle_graph:
+	input:
+		"input/{file}.fa"
+	output:
+		"tmp/{file}_tangle.gfa"
+	shadow: "shallow"
+	shell:
+		"{BCALMBINPATH} -in {input} -kmer-size 11 -abundance-min 1 && {BCALMCONVERTPATH} {wildcards.file}.unitigs.fa {output} 11"
+
+rule create_pbsim_reads:
+	input:
+		"input/{file}.fa"
+	output:
+		"tmp/{file}_simulatedreads.fastq"
+	shadow: "shallow"
+	shell:
+		"{PBSIMBINPATH} --model_qc {PBSIMCONFIGPATH} {input} && mv sd_0001.fastq {output}"
+
+rule one_run:
+	input:
+		"tmp/{file}_simulatedreads.fastq",
+		"tmp/{file}_{graph}.gfa"
+	output:
+		"results/{file}_{graph}.txt",
+	run:
+		shell("{ALIGNERBINPATH} -f tmp/{wildcards.file}_simulatedreads.fastq -g tmp/{wildcards.file}_{wildcards.graph}.gfa > {output}"),
+
+rule summarize:
+	input:
+		"results/{file}_linear.txt",
+		"results/{file}_onechar.txt",
+		"results/{file}_snp.txt",
+		"results/{file}_twopath.txt",
+		"results/{file}_tangle.txt"
+	output:
+		"results/{file}_summary.txt"
+	run:
+		shell("echo Linear graph: >> {output}")
+		shell("grep \"cellbycell took\" < results/{wildcards.file}_linear.txt >> {output}")
+		shell("grep \"bitvector took\" < results/{wildcards.file}_linear.txt >> {output}")
+		shell("grep ratio < results/{wildcards.file}_linear.txt >> {output}")
+		shell("echo Onechar graph: >> {output}")
+		shell("grep \"cellbycell took\" < results/{wildcards.file}_onechar.txt >> {output}")
+		shell("grep \"bitvector took\" < results/{wildcards.file}_onechar.txt >> {output}")
+		shell("grep ratio < results/{wildcards.file}_onechar.txt >> {output}")
+		shell("echo SNP graph: >> {output}")
+		shell("grep \"cellbycell took\" < results/{wildcards.file}_snp.txt >> {output}")
+		shell("grep \"bitvector took\" < results/{wildcards.file}_snp.txt >> {output}")
+		shell("grep ratio < results/{wildcards.file}_snp.txt >> {output}")
+		shell("echo Twopath graph: >> {output}")
+		shell("grep \"cellbycell took\" < results/{wildcards.file}_twopath.txt >> {output}")
+		shell("grep \"bitvector took\" < results/{wildcards.file}_twopath.txt >> {output}")
+		shell("grep ratio < results/{wildcards.file}_twopath.txt >> {output}")
+		shell("echo Tangle graph: >> {output}")
+		shell("grep \"cellbycell took\" < results/{wildcards.file}_tangle.txt >> {output}")
+		shell("grep \"bitvector took\" < results/{wildcards.file}_tangle.txt >> {output}")
+		shell("grep ratio < results/{wildcards.file}_tangle.txt >> {output}")

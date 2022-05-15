@@ -1,0 +1,34 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Job stats:
+job                    count    min threads    max threads
+-------------------  -------  -------------  -------------
+all                        1              1              1
+create_linear_graph        1              1              1
+one_run                    5              1              1
+summarize                  1              1              1
+total                      8              1              1
+
+Select jobs to execute...
+
+[Sun May 15 14:21:46 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_onechar.gfa
+    output: results/ref10000_onechar.txt
+    jobid: 7
+    wildcards: file=ref10000, graph=onechar
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:21:46 2022]
+rule one_run:
+    input: tmp/ref10000_simulatedreads.fastq, tmp/ref10000_snp.gfa
+    output: results/ref10000_snp.txt
+    jobid: 9
+    wildcards: file=ref10000, graph=snp
+    resources: tmpdir=/tmp
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2022-05-15T142146.270134.snakemake.log

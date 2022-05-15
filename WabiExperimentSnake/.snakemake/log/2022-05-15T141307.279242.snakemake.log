@@ -1,0 +1,41 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                     count    min threads    max threads
+--------------------  -------  -------------  -------------
+all                         1              1              1
+create_linear_graph         1              1              1
+create_onechar_graph        1              1              1
+create_pbsim_reads          1              1              1
+create_snp_graph            1              1              1
+create_tangle_graph         1              1              1
+create_twopath_graph        1              1              1
+one_run                     5              1              1
+summarize                   1              1              1
+total                      13              1              1
+
+Select jobs to execute...
+
+[Sun May 15 14:13:07 2022]
+rule create_onechar_graph:
+    input: input/ref10000.fa
+    output: tmp/ref10000_onechar.gfa
+    jobid: 8
+    wildcards: file=ref10000
+    resources: tmpdir=/tmp
+
+[Sun May 15 14:13:07 2022]
+Error in rule create_onechar_graph:
+    jobid: 8
+    output: tmp/ref10000_onechar.gfa
+    shell:
+        sed -n 2p < input/ref10000.fa | scripts/create_onechar_graph.py > tmp/ref10000_onechar.gfa
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job create_onechar_graph since they might be corrupted:
+tmp/ref10000_onechar.gfa
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2022-05-15T141307.279242.snakemake.log
