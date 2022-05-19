@@ -1,0 +1,4 @@
+﻿  main.cpp
+C:\Users\tomislav.vidovic\Documents\Fax\bionInf\projekt\BioinformaticsProject\Program\Project1\Project1\main.cpp(113,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\tomislav.vidovic\Documents\Fax\bionInf\projekt\BioinformaticsProject\Program\Project1\Project1\main.cpp(116,22): warning C4018: '<': signed/unsigned mismatch
+  Project1.vcxproj -> C:\Users\tomislav.vidovic\Documents\Fax\bionInf\projekt\BioinformaticsProject\Program\Project1\Debug\Project1.exe
