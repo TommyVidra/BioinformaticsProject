@@ -6,11 +6,20 @@
 #include <cctype>
 using namespace std;
 
-#define LINEAR_GRAPH_PATH	"GraphFiles\\ref10000_linear.gfa"
-#define TANGLE_GRAPH_PATH	"GraphFiles\\ref10000_tangle.gfa"
-#define	SNP_GRAPH_PATH		"GraphFiles\\ref10000_snp.gfa"
-#define ONECHAR_GRAPH_PATH	"GraphFiles\\ref10000_onechar.gfa"
-#define TWOPATH_GRAPH_PATH	"GraphFiles\\ref10000_twopath.gfa"
+// windows
+//#define LINEAR_GRAPH_PATH	"GraphFiles\\ref10000_linear.gfa"
+//#define TANGLE_GRAPH_PATH	"GraphFiles\\ref10000_tangle.gfa"
+//#define	SNP_GRAPH_PATH		"GraphFiles\\ref10000_snp.gfa"
+//#define ONECHAR_GRAPH_PATH	"GraphFiles\\ref10000_onechar.gfa"
+//#define TWOPATH_GRAPH_PATH	"GraphFiles\\ref10000_twopath.gfa"
+
+//mac/linux
+#define LINEAR_GRAPH_PATH	"GraphFiles/ref10000_linear.gfa"
+#define TANGLE_GRAPH_PATH	"GraphFiles/ref10000_tangle.gfa"
+#define	SNP_GRAPH_PATH		"GraphFiles/ref10000_snp.gfa"
+#define ONECHAR_GRAPH_PATH	"GraphFiles/ref10000_onechar.gfa"
+#define TWOPATH_GRAPH_PATH	"GraphFiles/ref10000_twopath.gfa"
+#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"		// small graph for testing 
 
 #define NODE_CHAR 'S'
 #define NODE_ID_LOCATION 2
@@ -140,10 +149,72 @@ vector<Node> Graph;
 //
 //
 
+void Search(vector<NewNodes> Nodes, vector<Edge> Edges, string pattern) {
+	// init matrix C
+	int C[(pattern.size())+1][(Nodes.size())+1];
+	
+	// fill in matrix C
+	for (int i = 0; i < pattern.size()+1; i++) {
+		C[i][0] = i;
+		for (int j = 0; j < Nodes.size()+1; j++) {
+			C[0][j] = j;
+			
+			if (i > 0 && j > 0) {
+				string s(1, pattern[i]);
+				if (s == Nodes[j].value) {
+					C[i][j] = C[i-1][j-1];
+				}
+				else {
+					C[i][j] = 1 + min(min(C[i-1][j], C[i][j-1]), C[i-1][j-1]);
+				}
+			}
+		}
+	}
+
+	// print matrix C 
+	for (int i = 0; i < pattern.size()+1; i++) {
+		for (int j = 0; j < Nodes.size()+1; j++) {
+			cout << C[i][j] << ' ';
+		}
+		cout << endl;
+	}
+}
+
+
+void SearchTextPattern(string text, string pattern) {
+	// init matrix C
+	int C[(text.size())+1][(pattern.size())+1];
+
+	// fill in matrix C
+	for (int i = 0; i < text.size()+1; i++) {
+		C[i][0] = i;
+		for (int j = 0; j < pattern.size()+1; j++) {
+			C[0][j] = j;
+			
+			if (i > 0 && j > 0) {
+				if (text[i] == pattern[j]) {
+					C[i][j] = C[i-1][j-1];
+				}
+				else {
+					C[i][j] = 1 + min(min(C[i-1][j], C[i][j-1]), C[i-1][j-1]);
+				}
+			}
+		}
+	}
+
+	// print matrix C 
+	for (int i = 0; i < text.size()+1; i++) {
+		for (int j = 0; j < pattern.size()+1; j++) {
+			cout << C[i][j] << ' ';
+		}
+		cout << endl;
+	}
+}
+
 int main() {
 	string line;
 	string tmp;
-	ifstream graphFile(SNP_GRAPH_PATH);
+	ifstream graphFile(SMALL_EXAMPLE);
 	if (graphFile.is_open())
 	{
 		while (getline(graphFile, tmp)) {
@@ -208,6 +279,16 @@ int main() {
 				cout << Graph[i].nextNode[j] << "\n";
 			cout << "\n";
 		}*/
+		//for (int i = 0; i < Nodes.size(); i++) {
+		//	cout << Nodes[i].id << ' ' << Nodes[i].value << endl;
+		//}
+		//for (int i = 0; i < Edges.size(); i++) {
+		//	cout << Edges[i].previousNode << ' ' << Edges[i].nextNode << endl;
+		//}
+
+		//SearchTextPattern("this", "there");
+		Search(Nodes, Edges, "TTTT");
+		
 	}
 	else cout << "File oppening error";
 
