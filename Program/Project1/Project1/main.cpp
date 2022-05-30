@@ -6,12 +6,15 @@
 #include <cctype>
 using namespace std;
 
+#define FILE_OPENING_ERROR "File oppening error"
+
 // windows
 //#define LINEAR_GRAPH_PATH	"GraphFiles\\ref10000_linear.gfa"
 //#define TANGLE_GRAPH_PATH	"GraphFiles\\ref10000_tangle.gfa"
 //#define	SNP_GRAPH_PATH		"GraphFiles\\ref10000_snp.gfa"
 //#define ONECHAR_GRAPH_PATH	"GraphFiles\\ref10000_onechar.gfa"
 //#define TWOPATH_GRAPH_PATH	"GraphFiles\\ref10000_twopath.gfa"
+//#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"	
 
 //mac/linux
 #define LINEAR_GRAPH_PATH	"GraphFiles/ref10000_linear.gfa"
@@ -31,16 +34,19 @@ using namespace std;
 #define EDGE_LAST_NODE_STARTING_POSITION 6
 #define EDGE_APPENDING_LAST_STARTING_POSITION 8
 
-struct Node
-{
-	int id;
-	vector<int> nextNode;
-	//vector<int> previousNode;
-	bool nextElementComplement;
-	string value;
-};
+//struct Node
+//{
+//	int id;
+//	vector<int> nextNode;
+//	//vector<int> previousNode;
+//	bool nextElementComplement;
+//	string value;
+//};
 
-struct NewNodes
+//vector<Node> Graph;
+//vector<char> LinearLine;
+
+struct Node
 {
 	int id;
 	string value;
@@ -48,40 +54,84 @@ struct NewNodes
 
 struct Edge
 {
-	int previousNode;
+	int previousNode; // Not the real id of node, but in the vector its position
 	int nextNode;
 };
 
-vector<NewNodes> Nodes;
+vector<Node> Nodes;
 vector<Edge> Edges;
 
-vector<Node> Graph;
-//vector<char> LinearLine;
 
-//void LinearGraphParsing() {
-//	string line;
-//	ifstream graphFile("GraphFiles\\ref10000_linear.gfa");
-//	if (graphFile.is_open())
-//	{
-//		while (getline(graphFile, line)) {
-//			for (int i = 0; i < line.size(); i++)
-//			{
-//				if (isalpha(line[i]))
-//				{
-//					Node newNode = 
-//				}
-//			}
-//		}
-//		graphFile.close();
-//
-//	}
-//	else cout << "File oppening error";
-//
-//	for (int i = 0; i <= line.length(); i++)
-//	{
-//		cout << i + 1 << line[i] << "\n";
-//	}
-//}
+// Method for parsing a linear graph to onechar graph
+void LinearGraphParsing() {
+	string line;
+	ifstream graphFile(LINEAR_GRAPH_PATH);
+	if (graphFile.is_open())
+	{
+		int id = 1;
+		while (getline(graphFile, line)) {
+			for (int i = 1; i < line.size(); i++)
+			{
+				if (isalpha(line[i]))
+				{
+					Node node;
+					Edge edge;
+
+					node.id = id;
+					node.value = line[i];
+					Nodes.push_back(node);
+
+					edge.previousNode = id - 1;
+					edge.nextNode = id;
+					Edges.push_back(edge);
+					id++;
+				}
+			}
+		}
+		graphFile.close();
+		Edges.pop_back(); // Last edge is a dead end
+	}
+	else cout << FILE_OPENING_ERROR;
+
+	/*for (int i = 9000; i < Edges.size(); i++)
+	{
+		cout << Edges[i].previousNode + 1 << " -> " <<  Edges[i].nextNode + 1<< "\n";
+		cout << Nodes[Edges[i].previousNode].value << " -> " << Nodes[Edges[i].nextNode].value << "\t" << Nodes[Edges[i].previousNode].id << " " << Nodes[Edges[i].nextNode].id << "\n";
+	}*/
+}
+
+
+void OneCharGraphParsing() {
+
+	string line;
+	ifstream graphfile(ONECHAR_GRAPH_PATH);
+
+	if (graphfile.is_open())
+	{
+		while (getline(graphfile, line)) {
+			if (line[0] == NODE_CHAR)
+			{
+				Node node;
+				string id = "";
+				int i = NODE_ID_LOCATION;
+				while (isdigit(line[i]))
+				{
+					id += line[i];
+					i++;
+				}
+				node.id = stoi(id);
+				i = NODE_VALUE_STARTING_LOCATION - id.length() - 1;
+				id = "";
+				while (isalpha(line[i]))
+				{
+					id += line[i];
+					i++;
+				}
+				//....
+			}
+		}
+	}
+}
 
 // Backup code
 //
@@ -149,7 +199,7 @@ vector<Node> Graph;
 //
 //
 
-void Search(vector<NewNodes> Nodes, vector<Edge> Edges, string pattern) {
+void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 	// init matrix C
 	int C[(pattern.size())+1][(Nodes.size())+1];
 	
@@ -220,7 +270,7 @@ int main() {
 		while (getline(graphFile, tmp)) {
 			if (tmp[0] == NODE_CHAR)
 			{
-				NewNodes newNode;
+				Node newNode;
 				string id = "";
 				int i = NODE_ID_LOCATION;
 				while (isdigit(tmp[i]))
@@ -298,3 +348,151 @@ int main() {
 	//}
 	return 0;
 }
+
+
+// Backup code
+//
+//
+//if (graphFile.is_open())
+//{
+//	while (getline(graphFile, tmp)) {
+//		if (tmp[0] == NODE_CHAR)
+//		{
+//			Node newNode;
+//			string id = "";
+//			int i = NODE_ID_LOCATION;
+//			while (isdigit(tmp[i]))
+//			{
+//				id += tmp[i];
+//				i++;
+//			}
+//			newNode.id = stoi(id);
+//			i = NODE_VALUE_STARTING_LOCATION + id.length() - 1;
+//			id = "";
+//			while (isalpha(tmp[i]))
+//			{
+//				id += tmp[i];
+//				i++;
+//			}
+//			newNode.value = id;
+//			Graph.push_back(newNode);
+//		}
+//		else if (tmp[0] == EDGE_CHAR)
+//		{
+//			string id = "";
+//			int i = EDGE_FIRST_NODE_STARTING_POSITION;
+//
+//			while (isdigit(tmp[i]))
+//			{
+//				id += tmp[i];
+//				i++;
+//			}
+//			int firstNode = stoi(id) - 1;
+//			int lengthFirstElement = id.length();
+//
+//			//Ovdje treba provjeriti kaj se dogada, jer postoji nekad i prije M-a da je minus, kako onda ide komplement?
+//			i = EDGE_APPENDING_FIRST_STARTING_POSITION + lengthFirstElement - 1;
+//			i = EDGE_LAST_NODE_STARTING_POSITION + lengthFirstElement - 1;
+//			id = "";
+//			while (isdigit(tmp[i]))
+//			{
+//				id += tmp[i];
+//				i++;
+//			}
+//			//cout << id<< "\n";
+//			Graph[firstNode].nextNode.push_back(stoi(id));
+//		}
+//		tmp = "";
+//	}
+//	graphFile.close();
+//	for (int i = 0; i < Graph.size(); i++)
+//	{
+//		cout << Graph[i].id << "\t" << Graph[i].value << "\n";
+//		for (int j = 0; j < Graph[i].nextNode.size(); j++)
+//			cout << Graph[i].nextNode[j] << "\n";
+//		cout << "\n";
+//	}
+//}
+//
+//
+
+//int main() {
+	/*string line;
+	string tmp;*/
+
+	//LinearGraphParsing();
+
+	//ifstream graphFile(SNP_GRAPH_PATH);
+	//if (graphFile.is_open())
+	//{
+	//	while (getline(graphFile, tmp)) {
+	//		if (tmp[0] == NODE_CHAR)
+	//		{
+	//			Nodes newNode;
+	//			string id = "";
+	//			int i = NODE_ID_LOCATION;
+	//			while (isdigit(tmp[i]))
+	//			{
+	//				id += tmp[i];
+	//				i++;
+	//			}
+	//			newNode.id = stoi(id);
+	//			i = NODE_VALUE_STARTING_LOCATION + id.length() - 1;
+	//			id = "";
+	//			while (isalpha(tmp[i]))
+	//			{
+	//				id += tmp[i];
+	//				i++;
+	//			}
+	//			newNode.value = id;
+	//			Nodes.push_back(newNode);
+	//		}
+	//		else if (tmp[0] == EDGE_CHAR)
+	//		{
+	//			string id = "";
+	//			int i = EDGE_FIRST_NODE_STARTING_POSITION;
+	//			Edge edge;
+
+	//			while (isdigit(tmp[i]))
+	//			{
+	//				id += tmp[i];
+	//				i++;
+	//			}
+
+	//			edge.previousNode = stoi(id) - 1;
+	//			//int firstNode = stoi(id)-1;
+	//			int lengthFirstElement = id.length();
+
+	//			//Ovdje treba provjeriti kaj se dogada, jer postoji nekad i prije M-a da je minus, kako onda ide komplement?
+	//			i = EDGE_APPENDING_FIRST_STARTING_POSITION + lengthFirstElement - 1;
+	//			i = EDGE_LAST_NODE_STARTING_POSITION + lengthFirstElement - 1;
+	//			id = "";
+	//			while (isdigit(tmp[i]))
+	//			{
+	//				id += tmp[i];
+	//				i++;
+	//			}
+	//			//cout << id<< "\n";
+	//			edge.nextNode = stoi(id) - 1;
+	//			Edges.push_back(edge);
+	//			//Graph[firstNode].nextNode.push_back(stoi(id));
+	//		}
+	//		tmp = "";
+	//	}
+	//	graphFile.close();
+	//	/*for (int i = 0; i < Graph.size(); i++)
+	//	{
+	//		cout << Graph[i].id << "\t" << Graph[i].value << "\n";
+	//		for (int j = 0; j < Graph[i].nextNode.size(); j++)
+	//			cout << Graph[i].nextNode[j] << "\n";
+	//		cout << "\n";
+	//	}*/
+	//}
+	//else cout << "File oppening error";
+
+	//for (int i = 0; i <= line.length(); i++)
+	//{
+	//	cout << i + 1 << line[i] << "\n";
+	//}
+	//return 0;
+//}
