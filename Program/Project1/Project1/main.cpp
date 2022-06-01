@@ -9,20 +9,21 @@ using namespace std;
 #define FILE_OPENING_ERROR "File oppening error"
 
 // windows
-#define LINEAR_GRAPH_PATH	"GraphFiles\\ref10000_linear.gfa"
-#define TANGLE_GRAPH_PATH	"GraphFiles\\ref10000_tangle.gfa"
-#define	SNP_GRAPH_PATH		"GraphFiles\\ref10000_snp.gfa"
-#define ONECHAR_GRAPH_PATH	"GraphFiles\\ref10000_onechar.gfa"
-#define TWOPATH_GRAPH_PATH	"GraphFiles\\ref10000_twopath.gfa"
-#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"	
+//#define LINEAR_GRAPH_PATH	"GraphFiles\\ref10000_linear.gfa"
+//#define TANGLE_GRAPH_PATH	"GraphFiles\\ref10000_tangle.gfa"
+//#define	SNP_GRAPH_PATH		"GraphFiles\\ref10000_snp.gfa"
+//#define ONECHAR_GRAPH_PATH	"GraphFiles\\ref10000_onechar.gfa"
+//#define TWOPATH_GRAPH_PATH	"GraphFiles\\ref10000_twopath.gfa"
+//#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"	
 
 //mac/linux
-//#define LINEAR_GRAPH_PATH	"GraphFiles/ref10000_linear.gfa"
-//#define TANGLE_GRAPH_PATH	"GraphFiles/ref10000_tangle.gfa"
-//#define	SNP_GRAPH_PATH		"GraphFiles/ref10000_snp.gfa"
-//#define ONECHAR_GRAPH_PATH	"GraphFiles/ref10000_onechar.gfa"
-//#define TWOPATH_GRAPH_PATH	"GraphFiles/ref10000_twopath.gfa"
-//#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"		// small graph for testing 
+#define LINEAR_GRAPH_PATH	"GraphFiles/ref10000_linear.gfa"
+#define TANGLE_GRAPH_PATH	"GraphFiles/ref10000_tangle.gfa"
+#define	SNP_GRAPH_PATH		"GraphFiles/ref10000_snp.gfa"
+#define ONECHAR_GRAPH_PATH	"GraphFiles/ref10000_onechar.gfa"
+#define TWOPATH_GRAPH_PATH	"GraphFiles/ref10000_twopath.gfa"
+#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"		// small graph for testing 
+#define SMALL_EXAMPLE_TWOPATH "GraphFiles/ref10000_small_twopath.gfa"
 
 #define NODE_CHAR 'S'
 #define NODE_ID_LOCATION 2
@@ -65,7 +66,7 @@ vector<Edge> Edges;
 // Method for parsing a linear graph to onechar graph
 void LinearGraphParsing() {
 	string line;
-	ifstream graphFile(LINEAR_GRAPH_PATH);
+	ifstream graphFile(SMALL_EXAMPLE);
 	if (graphFile.is_open())
 	{
 		int id = 1;
@@ -168,6 +169,18 @@ void GraphParsing(string path) {
 
 }
 
+int** Propagate(int previousNode, int nextNode, int i, int** C) {
+	if (C[i][nextNode] > 1 + C[i][previousNode]) {
+		C[i][nextNode] = 1 + C[i][previousNode];
+
+		for (int j = nextNode; j < Edges.size(); j++) {
+			Propagate(Edges[j].previousNode, Edges[j].nextNode, i, C);
+		}
+	}
+
+	return C;
+}
+
 void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 	// init matrix C
 	int** C = (int**)malloc((pattern.size() + 1) * sizeof(int * ));
@@ -189,15 +202,27 @@ void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 				}
 			}
 		}
+
+		if (i > 0) {
+			for (int j = 0; j < Edges.size(); j++) {
+				C = Propagate(Edges[j].previousNode, Edges[j].nextNode, i, C);
+			}
+		}
 	}
+
+	ofstream MyFile("test.txt");
 
 	// print matrix C 
 	for (int i = 0; i < pattern.size()+1; i++) {
 		for (int j = 0; j < Nodes.size()+1; j++) {
-			cout << C[i][j] << ' ';
+			//cout << C[i][j] << ' ';
+			MyFile << C[i][j] << ' ';
 		}
-		cout << endl;
+		//cout << endl;
+		MyFile << endl;
 	}
+
+	MyFile.close();
 }
 
 void SearchTextPattern(string text, string pattern) {
@@ -232,8 +257,8 @@ void SearchTextPattern(string text, string pattern) {
 }
 
 int main() {
-
-	GraphParsing(TANGLE_GRAPH_PATH);
+	//LinearGraphParsing();
+	GraphParsing(SMALL_EXAMPLE_TWOPATH);
 	//string line;
 	//string tmp;
 	//ifstream graphFile(SMALL_EXAMPLE);
@@ -301,15 +326,16 @@ int main() {
 	//			cout << Graph[i].nextNode[j] << "\n";
 	//		cout << "\n";
 	//	}*/
-	//	//for (int i = 0; i < Nodes.size(); i++) {
-	//	//	cout << Nodes[i].id << ' ' << Nodes[i].value << endl;
-	//	//}
-	//	//for (int i = 0; i < Edges.size(); i++) {
-	//	//	cout << Edges[i].previousNode << ' ' << Edges[i].nextNode << endl;
-	//	//}
+	//for (int i = 0; i < Nodes.size(); i++) {
+	//	cout << Nodes[i].id << ' ' << Nodes[i].value << endl;
+	//}
+	//
+	//for (int i = 0; i < Edges.size(); i++) {
+	//	cout << Edges[i].previousNode << ' ' << Edges[i].nextNode << endl;
+	//}
 
 	//	//SearchTextPattern("this", "there");
-	//	Search(Nodes, Edges, "TTTT");
+	Search(Nodes, Edges, "TTTT");
 	//	
 	//}
 	//else cout << "File oppening error";
