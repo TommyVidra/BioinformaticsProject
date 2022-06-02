@@ -22,8 +22,9 @@ using namespace std;
 #define	SNP_GRAPH_PATH		"GraphFiles/ref10000_snp.gfa"
 #define ONECHAR_GRAPH_PATH	"GraphFiles/ref10000_onechar.gfa"
 #define TWOPATH_GRAPH_PATH	"GraphFiles/ref10000_twopath.gfa"
-#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"		// small graph for testing 
+#define SMALL_EXAMPLE_LINEAR "GraphFiles/ref10000_small_linear.gfa"		
 #define SMALL_EXAMPLE_TWOPATH "GraphFiles/ref10000_small_twopath.gfa"
+#define SMALL_EXAMPLE_SNP 	"GraphFiles/ref10000_small_snp.gfa"
 
 #define NODE_CHAR 'S'
 #define NODE_ID_LOCATION 2
@@ -54,11 +55,10 @@ vector<Edge> Edges;
 vector<Node> TmpNodes;
 vector<Edge> TmpEdges; 
 
-
 // Method for parsing a linear graph to onechar graph
 void LinearGraphParsing() {
 	string line;
-	ifstream graphFile(SMALL_EXAMPLE);
+	ifstream graphFile(SMALL_EXAMPLE_LINEAR);
 	if (graphFile.is_open())
 	{
 		int id = 1;
@@ -95,7 +95,6 @@ void LinearGraphParsing() {
 
 // Works for OneChar and TwoPath and Snp and Tngle 
 void GraphParsing(string path) {
-
 	string line;
 	ifstream graphfile(path);
 
@@ -207,8 +206,8 @@ void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 	// print matrix C 
 	for (int i = 0; i < pattern.size()+1; i++) {
 		for (int j = 0; j < Nodes.size()+1; j++) {
-			//cout << C[i][j] << ' ';
-			MyFile << C[i][j] << ' ';
+			//cout << C[i][j] << " ";
+			MyFile << C[i][j] << " ";
 		}
 		//cout << endl;
 		MyFile << endl;
@@ -218,38 +217,39 @@ void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 	free(C);
 }
 
-void SearchTextPattern(string text, string pattern) {
-	// init matrix C
-	int** C = (int**)malloc((text.size() + 1) * sizeof(int*));
-	for (int i = 0; i < text.size() + 1; i++) C[i] = (int*)malloc((pattern.size() + 1) * sizeof(int));
-
-	// fill in matrix C
-	for (int i = 0; i < text.size()+1; i++) {
-		C[i][0] = i;
-		for (int j = 0; j < pattern.size()+1; j++) {
-			C[0][j] = j;
-			
-			if (i > 0 && j > 0) {
-				if (text[i] == pattern[j]) {
-					C[i][j] = C[i-1][j-1];
-				}
-				else {
-					C[i][j] = 1 + min(min(C[i-1][j], C[i][j-1]), C[i-1][j-1]);
-				}
-			}
-		}
-	}
-
-	// print matrix C 
-	for (int i = 0; i < text.size()+1; i++) {
-		for (int j = 0; j < pattern.size()+1; j++) {
-			cout << C[i][j] << ' ';
-		}
-		cout << endl;
-	}
-
-	free(C);
-}
+// Method for searching plain text 
+//void SearchTextPattern(string text, string pattern) {
+//	// init matrix C
+//	int** C = (int**)malloc((text.size() + 1) * sizeof(int*));
+//	for (int i = 0; i < text.size() + 1; i++) C[i] = (int*)malloc((pattern.size() + 1) * sizeof(int));
+//
+//	// fill in matrix C
+//	for (int i = 0; i < text.size()+1; i++) {
+//		C[i][0] = i;
+//		for (int j = 0; j < pattern.size()+1; j++) {
+//			C[0][j] = j;
+//			
+//			if (i > 0 && j > 0) {
+//				if (text[i] == pattern[j]) {
+//					C[i][j] = C[i-1][j-1];
+//				}
+//				else {
+//					C[i][j] = 1 + min(min(C[i-1][j], C[i][j-1]), C[i-1][j-1]);
+//				}
+//			}
+//		}
+//	}
+//
+//	// print matrix C 
+//	for (int i = 0; i < text.size()+1; i++) {
+//		for (int j = 0; j < pattern.size()+1; j++) {
+//			cout << C[i][j] << " ";
+//		}
+//		cout << endl;
+//	}
+//
+//	free(C);
+//}
 
 // Method used to generate multiple nodes and edges from one node for lates analisys
 void GenerateOneChar(Node node)
@@ -269,22 +269,52 @@ void GenerateOneChar(Node node)
 	}
 	TmpEdges.pop_back(); // Remove an edge that is a dead end
 
-	for (int i = 0; i < TmpEdges.size(); i++)
-	{
-		cout << TmpEdges[i].previousNode + 1 << " -> " << TmpEdges[i].nextNode + 1 << "\n";
-		cout << TmpNodes[TmpEdges[i].previousNode].value << " -> " << TmpNodes[TmpEdges[i].nextNode].value << "\t" << TmpNodes[TmpEdges[i].previousNode].id << " " << TmpNodes[TmpEdges[i].nextNode].id << "\n";
-	}
+	//for (int i = 0; i < TmpEdges.size(); i++)
+	//{
+	//	cout << TmpEdges[i].previousNode + 1 << " -> " << TmpEdges[i].nextNode + 1 << "\n";
+	//	cout << TmpNodes[TmpEdges[i].previousNode].value << " -> " << TmpNodes[TmpEdges[i].nextNode].value << "\t" << TmpNodes[TmpEdges[i].previousNode].id << " " << TmpNodes[TmpEdges[i].nextNode].id << "\n";
+	//}
 
 }
 
 int main() {
+	vector<string> onechar_graphs;
+   	onechar_graphs.push_back(ONECHAR_GRAPH_PATH);
+   	onechar_graphs.push_back(TWOPATH_GRAPH_PATH);
+   	onechar_graphs.push_back(SMALL_EXAMPLE_LINEAR);
+   	onechar_graphs.push_back(SMALL_EXAMPLE_TWOPATH);
+	vector<string> multichar_graphs;
+   	multichar_graphs.push_back(TANGLE_GRAPH_PATH);
+   	multichar_graphs.push_back(SNP_GRAPH_PATH);
+   	multichar_graphs.push_back(SMALL_EXAMPLE_SNP);
 
-	Node n;
-	n.id = 12;
-	n.value = "TTACGTTTTT";
-	GenerateOneChar(n);
-	//LinearGraphParsing();
-	//GraphParsing(SMALL_EXAMPLE_TWOPATH);
-	Search(Nodes, Edges, "TTTT");
+	string path = SMALL_EXAMPLE_SNP;	// promijeni ako zelis tesirat neki drugi graf 
+
+	bool found = (find(onechar_graphs.begin(), onechar_graphs.end(), path) != onechar_graphs.end());
+
+	if (found == 1) {
+		if (path == LINEAR_GRAPH_PATH || path == SMALL_EXAMPLE_LINEAR) {
+			LinearGraphParsing();
+		} 
+		else {
+			GraphParsing(path);
+		}
+		Search(Nodes, Edges, "TTTT");
+
+	}
+	else {
+		GraphParsing(path);
+		for (int i=0; i<Nodes.size(); i++) {
+			GenerateOneChar(Nodes[i]);
+		}
+		Search(TmpNodes, TmpEdges, "TTTT");
+
+	}
+
+	//Node n;
+	//n.id = 12;
+	//n.value = "TTACGTTTTT";
+	//GenerateOneChar(n);	
+
 	return 0;
 }
