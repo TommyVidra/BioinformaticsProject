@@ -19,3 +19,6 @@ Koliko se tih slova podudara
 
 *Komplementi DNA*
 A=T, C=G
+
+## Dokumentacija - link na Overleaf folder u kojem je projektna dokumentacija
+https://www.overleaf.com/project/6299004e7c77e76f1725553a
