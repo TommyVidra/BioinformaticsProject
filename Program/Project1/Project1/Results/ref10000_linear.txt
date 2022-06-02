@@ -1,0 +1,16 @@
+load graph
+1 original nodes
+1 split nodes
+10000bp
+0 edges
+0 nodes with in-degree >= 2
+load reads
+preprocess graph
+The graph is linear / a tree / a forest
+Collapsed nodes: 1
+Collapsed edges: 0
+Nodes: 10000
+Edges: 9999
+BPs: 10000
+start algorithm for approximate pattern matching on hypertext
+algorithm took 18562us

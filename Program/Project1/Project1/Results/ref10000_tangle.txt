@@ -1,0 +1,16 @@
+load graph
+399 original nodes
+399 split nodes
+13897bp
+1382 edges
+399 nodes with in-degree >= 2
+load reads
+preprocess graph
+The graph is cyclic
+Collapsed nodes: 399
+Collapsed edges: 1382
+Nodes: 13897
+Edges: 13498
+BPs: 13897
+start algorithm for approximate pattern matching on hypertext
+algorithm took 46616us

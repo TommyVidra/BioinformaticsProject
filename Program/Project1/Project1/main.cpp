@@ -4,6 +4,9 @@
 #include <string>
 #include <cstring>
 #include <cctype>
+#include <sstream>
+#include <chrono>
+#include <map>
 using namespace std;
 
 #define FILE_OPENING_ERROR "File oppening error"
@@ -17,14 +20,14 @@ using namespace std;
 //#define SMALL_EXAMPLE 		"GraphFiles/ref10000_small.gfa"	
 
 //mac/linux
-#define LINEAR_GRAPH_PATH	"GraphFiles/ref10000_linear.gfa"
-#define TANGLE_GRAPH_PATH	"GraphFiles/ref10000_tangle.gfa"
-#define	SNP_GRAPH_PATH		"GraphFiles/ref10000_snp.gfa"
-#define ONECHAR_GRAPH_PATH	"GraphFiles/ref10000_onechar.gfa"
-#define TWOPATH_GRAPH_PATH	"GraphFiles/ref10000_twopath.gfa"
-#define SMALL_EXAMPLE_LINEAR "GraphFiles/ref10000_small_linear.gfa"		
-#define SMALL_EXAMPLE_TWOPATH "GraphFiles/ref10000_small_twopath.gfa"
-#define SMALL_EXAMPLE_SNP 	"GraphFiles/ref10000_small_snp.gfa"
+#define LINEAR_GRAPH_PATH		"GraphFiles/ref10000_linear.gfa"
+#define TANGLE_GRAPH_PATH		"GraphFiles/ref10000_tangle.gfa"
+#define	SNP_GRAPH_PATH			"GraphFiles/ref10000_snp.gfa"
+#define ONECHAR_GRAPH_PATH		"GraphFiles/ref10000_onechar.gfa"
+#define TWOPATH_GRAPH_PATH		"GraphFiles/ref10000_twopath.gfa"
+#define SMALL_EXAMPLE_LINEAR 	"GraphFiles/ref10000_small_linear.gfa"		
+#define SMALL_EXAMPLE_TWOPATH 	"GraphFiles/ref10000_small_twopath.gfa"
+#define SMALL_EXAMPLE_SNP 		"GraphFiles/ref10000_small_snp.gfa"
 
 #define NODE_CHAR 'S'
 #define NODE_ID_LOCATION 2
@@ -54,6 +57,23 @@ vector<Edge> Edges;
 // Helping vectors for multichar nodes
 vector<Node> TmpNodes;
 vector<Edge> TmpEdges; 
+
+map<int, int> DictForInDegreeCount;
+
+vector<string> splitStr(string s, string delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    string token;
+    vector<string> res;
+
+    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+        token = s.substr (pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back (token);
+    }
+
+    res.push_back (s.substr (pos_start));
+    return res;
+}
 
 // Method for parsing a linear graph to onechar graph
 void LinearGraphParsing() {
@@ -277,7 +297,58 @@ void GenerateOneChar(Node node)
 
 }
 
-int main() {
+void firstPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, vector<Node> TmpNodes, string name) {
+	MyFile << Nodes.size() << " original nodes" << endl;
+	MyFile << Nodes.size() << " split nodes" << endl;
+	MyFile << TmpNodes.size() << "bp" << endl;
+	MyFile << Edges.size() << " edges" << endl;
+
+	for (int i=0; i<Nodes.size(); i++) {
+		DictForInDegreeCount[Nodes[i].id] = 0;
+	}
+	for (int i=0; i<Nodes.size(); i++) {
+		for (int j=0; j<Edges.size(); j++) {
+			if (Edges[j].nextNode == Nodes[i].id) {
+				DictForInDegreeCount[Nodes[i].id]++;
+			}
+		}
+	}
+	cout << endl;
+	map<int, int>::iterator itr;
+	int counter = 0;
+	for (itr = DictForInDegreeCount.begin(); itr != DictForInDegreeCount.end(); ++itr) {
+    	//cout << '\t' << itr->first << '\t' << itr->second << '\n';
+		if (itr->second >= 2) counter++;
+    }
+	MyFile << counter << " nodes with in-degree >= 2" << endl;
+
+	MyFile << "load reads" << endl;
+	MyFile << "preprocess graph" << endl;
+
+	if (name == "linear" || name == "onechar") {
+		MyFile << "The graph is linear / a tree / a forest" << endl;
+	}
+	else if (name == "twopath" || name == "snp") {
+		MyFile << "The graph is a DAG" << endl;
+	}
+	else {
+		MyFile << "The graph is cyclic" << endl;
+	}
+
+	MyFile << "Collapsed nodes: " << Nodes.size() << endl;
+	MyFile << "Collapsed edges: " << Edges.size() << endl;
+}
+
+void secondPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, float duration) {
+	MyFile << "Nodes: " << Nodes.size() << endl;
+	MyFile << "Edges: " << Edges.size() << endl;
+	MyFile << "BPs: " << Nodes.size() << endl;
+	MyFile << "start algorithm for approximate pattern matching on hypertext" << endl;
+	MyFile << "algorithm took " << duration <<"us" << endl;
+}
+
+
+int main() {	
 	vector<string> onechar_graphs;
    	onechar_graphs.push_back(ONECHAR_GRAPH_PATH);
    	onechar_graphs.push_back(TWOPATH_GRAPH_PATH);
@@ -288,26 +359,44 @@ int main() {
    	multichar_graphs.push_back(SNP_GRAPH_PATH);
    	multichar_graphs.push_back(SMALL_EXAMPLE_SNP);
 
-	string path = SMALL_EXAMPLE_SNP;	// promijeni ako zelis tesirat neki drugi graf 
+	string path = TANGLE_GRAPH_PATH;	// promijeni ako zelis tesirat neki drugi graf 
+
+	vector<string> v1 = splitStr(path, "/");
+	vector<string> v2 = splitStr(v1[1], ".");
+	vector<string> v3 = splitStr(v2[0], "_"); // ne radi za small examples 
+	ofstream MyFile("Results/" + v2[0] + ".txt");
+	MyFile << "load graph" << endl;
 
 	bool found = (find(onechar_graphs.begin(), onechar_graphs.end(), path) != onechar_graphs.end());
 
 	if (found == 1) {
 		if (path == LINEAR_GRAPH_PATH || path == SMALL_EXAMPLE_LINEAR) {
 			LinearGraphParsing();
+			firstPrint(Nodes, Edges, MyFile, Nodes, v3[1]);
 		} 
 		else {
 			GraphParsing(path);
+			firstPrint(Nodes, Edges, MyFile, Nodes, v3[1]);
 		}
+		auto begin = chrono::high_resolution_clock::now();
 		Search(Nodes, Edges, "TTTT");
+		auto end = chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+		secondPrint(Nodes, Edges, MyFile, duration.count());
 
 	}
 	else {
 		GraphParsing(path);
+
 		for (int i=0; i<Nodes.size(); i++) {
 			GenerateOneChar(Nodes[i]);
 		}
+		auto begin = chrono::high_resolution_clock::now();
 		Search(TmpNodes, TmpEdges, "TTTT");
+		auto end = chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+		firstPrint(Nodes, Edges, MyFile, TmpNodes, v3[1]);
+		secondPrint(TmpNodes, TmpEdges, MyFile, duration.count());
 
 	}
 
@@ -315,6 +404,7 @@ int main() {
 	//n.id = 12;
 	//n.value = "TTACGTTTTT";
 	//GenerateOneChar(n);	
+	MyFile.close();
 
 	return 0;
 }
