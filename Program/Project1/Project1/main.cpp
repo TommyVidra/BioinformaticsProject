@@ -7,6 +7,8 @@
 #include <sstream>
 #include <chrono>
 #include <map>
+
+#include <time.h>
 using namespace std;
 
 #define FILE_OPENING_ERROR "File oppening error"
@@ -60,6 +62,10 @@ vector<Edge> TmpEdges;
 
 map<int, int> DictForInDegreeCount;
 
+
+
+// *** HELPING FUNCTIONS *** 
+// Method used for splitting strings
 vector<string> splitStr(string s, string delimiter) {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     string token;
@@ -75,10 +81,66 @@ vector<string> splitStr(string s, string delimiter) {
     return res;
 }
 
+// Methos used for printing results part 1
+void firstPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, vector<Node> TmpNodes, string name) {
+	MyFile << "load graph" << endl;
+	MyFile << Nodes.size() << " original nodes" << endl;
+	MyFile << Nodes.size() << " split nodes" << endl;
+	MyFile << TmpNodes.size() << "bp" << endl;
+	MyFile << Edges.size() << " edges" << endl;
+
+	for (int i=0; i<Nodes.size(); i++) {
+		DictForInDegreeCount[Nodes[i].id] = 0;
+	}
+	for (int i=0; i<Nodes.size(); i++) {
+		for (int j=0; j<Edges.size(); j++) {
+			if (Edges[j].nextNode == Nodes[i].id) {
+				DictForInDegreeCount[Nodes[i].id]++;
+			}
+		}
+	}
+	cout << endl;
+	map<int, int>::iterator itr;
+	int counter = 0;
+	for (itr = DictForInDegreeCount.begin(); itr != DictForInDegreeCount.end(); ++itr) {
+    	//cout << '\t' << itr->first << '\t' << itr->second << '\n';
+		if (itr->second >= 2) counter++;
+    }
+	MyFile << counter << " nodes with in-degree >= 2" << endl;
+
+	MyFile << "load reads" << endl;
+	MyFile << "preprocess graph" << endl;
+
+	if (name == "linear" || name == "onechar") {
+		MyFile << "The graph is linear / a tree / a forest" << endl;
+	}
+	else if (name == "twopath" || name == "snp") {
+		MyFile << "The graph is a DAG" << endl;
+	}
+	else {
+		MyFile << "The graph is cyclic" << endl;
+	}
+
+	MyFile << "Collapsed nodes: " << Nodes.size() << endl;
+	MyFile << "Collapsed edges: " << Edges.size() << endl;
+}
+
+// Methos used for printing results part 2
+void secondPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, float duration) {
+	MyFile << "Nodes: " << Nodes.size() << endl;
+	MyFile << "Edges: " << Edges.size() << endl;
+	MyFile << "BPs: " << Nodes.size() << endl;
+	MyFile << "start algorithm for approximate pattern matching on hypertext" << endl;
+	MyFile << "algorithm took " << duration << "us" << endl;
+}
+
+
+
+// *** GRAPH PARSING ***
 // Method for parsing a linear graph to onechar graph
 void LinearGraphParsing() {
 	string line;
-	ifstream graphFile(SMALL_EXAMPLE_LINEAR);
+	ifstream graphFile(LINEAR_GRAPH_PATH);
 	if (graphFile.is_open())
 	{
 		int id = 1;
@@ -113,7 +175,7 @@ void LinearGraphParsing() {
 	}*/
 }
 
-// Works for OneChar and TwoPath and Snp and Tngle 
+// Method for parsing a OneChar, TwoPath, Snp and Tngle graph
 void GraphParsing(string path) {
 	string line;
 	ifstream graphfile(path);
@@ -180,6 +242,36 @@ void GraphParsing(string path) {
 
 }
 
+// Method used to generate multiple nodes and edges from one node for lates analisys
+void GenerateOneChar(Node node)
+{
+	for (int i = 0; i < node.value.length(); i++)
+	{
+		Node tmpNode;
+		tmpNode.id = i + 1;
+		tmpNode.value = node.value[i];
+
+		Edge tmpEdge;
+		tmpEdge.previousNode = i;
+		tmpEdge.nextNode = i + 1;
+
+		TmpNodes.push_back(tmpNode);
+		TmpEdges.push_back(tmpEdge);
+	}
+	TmpEdges.pop_back(); // Remove an edge that is a dead end
+
+	//for (int i = 0; i < TmpEdges.size(); i++)
+	//{
+	//	cout << TmpEdges[i].previousNode + 1 << " -> " << TmpEdges[i].nextNode + 1 << "\n";
+	//	cout << TmpNodes[TmpEdges[i].previousNode].value << " -> " << TmpNodes[TmpEdges[i].nextNode].value << "\t" << TmpNodes[TmpEdges[i].previousNode].id << " " << TmpNodes[TmpEdges[i].nextNode].id << "\n";
+	//}
+
+}
+
+
+
+// *** ALGORITHM for approximate pattern matching on hypertext ***
+// Implemented method from the work of Gonzalo Navarro (https://www.sciencedirect.com/science/article/pii/S0304397599003333) for approximate pattern matching on hypertext
 int** Propagate(int previousNode, int nextNode, int i, int** C) {
 	if (C[i][nextNode] > 1 + C[i][previousNode]) {
 		C[i][nextNode] = 1 + C[i][previousNode];
@@ -192,6 +284,7 @@ int** Propagate(int previousNode, int nextNode, int i, int** C) {
 	return C;
 }
 
+// Implemented method from the work of Gonzalo Navarro (https://www.sciencedirect.com/science/article/pii/S0304397599003333) for approximate pattern matching on hypertext
 void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 	// init matrix C
 	int** C = (int**)malloc((pattern.size() + 1) * sizeof(int * ));
@@ -237,119 +330,12 @@ void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 	free(C);
 }
 
-// Method for searching plain text 
-//void SearchTextPattern(string text, string pattern) {
-//	// init matrix C
-//	int** C = (int**)malloc((text.size() + 1) * sizeof(int*));
-//	for (int i = 0; i < text.size() + 1; i++) C[i] = (int*)malloc((pattern.size() + 1) * sizeof(int));
-//
-//	// fill in matrix C
-//	for (int i = 0; i < text.size()+1; i++) {
-//		C[i][0] = i;
-//		for (int j = 0; j < pattern.size()+1; j++) {
-//			C[0][j] = j;
-//			
-//			if (i > 0 && j > 0) {
-//				if (text[i] == pattern[j]) {
-//					C[i][j] = C[i-1][j-1];
-//				}
-//				else {
-//					C[i][j] = 1 + min(min(C[i-1][j], C[i][j-1]), C[i-1][j-1]);
-//				}
-//			}
-//		}
-//	}
-//
-//	// print matrix C 
-//	for (int i = 0; i < text.size()+1; i++) {
-//		for (int j = 0; j < pattern.size()+1; j++) {
-//			cout << C[i][j] << " ";
-//		}
-//		cout << endl;
-//	}
-//
-//	free(C);
-//}
 
-// Method used to generate multiple nodes and edges from one node for lates analisys
-void GenerateOneChar(Node node)
-{
-	for (int i = 0; i < node.value.length(); i++)
-	{
-		Node tmpNode;
-		tmpNode.id = i + 1;
-		tmpNode.value = node.value[i];
-
-		Edge tmpEdge;
-		tmpEdge.previousNode = i;
-		tmpEdge.nextNode = i + 1;
-
-		TmpNodes.push_back(tmpNode);
-		TmpEdges.push_back(tmpEdge);
-	}
-	TmpEdges.pop_back(); // Remove an edge that is a dead end
-
-	//for (int i = 0; i < TmpEdges.size(); i++)
-	//{
-	//	cout << TmpEdges[i].previousNode + 1 << " -> " << TmpEdges[i].nextNode + 1 << "\n";
-	//	cout << TmpNodes[TmpEdges[i].previousNode].value << " -> " << TmpNodes[TmpEdges[i].nextNode].value << "\t" << TmpNodes[TmpEdges[i].previousNode].id << " " << TmpNodes[TmpEdges[i].nextNode].id << "\n";
-	//}
-
-}
-
-void firstPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, vector<Node> TmpNodes, string name) {
-	MyFile << Nodes.size() << " original nodes" << endl;
-	MyFile << Nodes.size() << " split nodes" << endl;
-	MyFile << TmpNodes.size() << "bp" << endl;
-	MyFile << Edges.size() << " edges" << endl;
-
-	for (int i=0; i<Nodes.size(); i++) {
-		DictForInDegreeCount[Nodes[i].id] = 0;
-	}
-	for (int i=0; i<Nodes.size(); i++) {
-		for (int j=0; j<Edges.size(); j++) {
-			if (Edges[j].nextNode == Nodes[i].id) {
-				DictForInDegreeCount[Nodes[i].id]++;
-			}
-		}
-	}
-	cout << endl;
-	map<int, int>::iterator itr;
-	int counter = 0;
-	for (itr = DictForInDegreeCount.begin(); itr != DictForInDegreeCount.end(); ++itr) {
-    	//cout << '\t' << itr->first << '\t' << itr->second << '\n';
-		if (itr->second >= 2) counter++;
-    }
-	MyFile << counter << " nodes with in-degree >= 2" << endl;
-
-	MyFile << "load reads" << endl;
-	MyFile << "preprocess graph" << endl;
-
-	if (name == "linear" || name == "onechar") {
-		MyFile << "The graph is linear / a tree / a forest" << endl;
-	}
-	else if (name == "twopath" || name == "snp") {
-		MyFile << "The graph is a DAG" << endl;
-	}
-	else {
-		MyFile << "The graph is cyclic" << endl;
-	}
-
-	MyFile << "Collapsed nodes: " << Nodes.size() << endl;
-	MyFile << "Collapsed edges: " << Edges.size() << endl;
-}
-
-void secondPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, float duration) {
-	MyFile << "Nodes: " << Nodes.size() << endl;
-	MyFile << "Edges: " << Edges.size() << endl;
-	MyFile << "BPs: " << Nodes.size() << endl;
-	MyFile << "start algorithm for approximate pattern matching on hypertext" << endl;
-	MyFile << "algorithm took " << duration <<"us" << endl;
-}
-
-
+// *** MAIN FUNCTION *** 
 int main() {	
+	// Helping vectors for different graph types 
 	vector<string> onechar_graphs;
+	onechar_graphs.push_back(LINEAR_GRAPH_PATH);
    	onechar_graphs.push_back(ONECHAR_GRAPH_PATH);
    	onechar_graphs.push_back(TWOPATH_GRAPH_PATH);
    	onechar_graphs.push_back(SMALL_EXAMPLE_LINEAR);
@@ -359,30 +345,42 @@ int main() {
    	multichar_graphs.push_back(SNP_GRAPH_PATH);
    	multichar_graphs.push_back(SMALL_EXAMPLE_SNP);
 
-	string path = TANGLE_GRAPH_PATH;	// promijeni ako zelis tesirat neki drugi graf 
+	string path = LINEAR_GRAPH_PATH;	// Path of graph which we want to test  
 
+	// Creating new txt file for every graph to store results 
 	vector<string> v1 = splitStr(path, "/");
 	vector<string> v2 = splitStr(v1[1], ".");
 	vector<string> v3 = splitStr(v2[0], "_"); // ne radi za small examples 
 	ofstream MyFile("Results/" + v2[0] + ".txt");
-	MyFile << "load graph" << endl;
 
-	bool found = (find(onechar_graphs.begin(), onechar_graphs.end(), path) != onechar_graphs.end());
+	bool found = (find(onechar_graphs.begin(), onechar_graphs.end(), path) != onechar_graphs.end()); // Determine which graph type is used for testing (onechar or multichar)
+	clock_t start, end;
+	double cpu_time_used;
 
 	if (found == 1) {
 		if (path == LINEAR_GRAPH_PATH || path == SMALL_EXAMPLE_LINEAR) {
-			LinearGraphParsing();
-			firstPrint(Nodes, Edges, MyFile, Nodes, v3[1]);
+			LinearGraphParsing();	// Parse graph 
+			firstPrint(Nodes, Edges, MyFile, Nodes, v3[1]); // Print first part of results
 		} 
 		else {
-			GraphParsing(path);
-			firstPrint(Nodes, Edges, MyFile, Nodes, v3[1]);
+			GraphParsing(path); 	// Parse graph 
+			firstPrint(Nodes, Edges, MyFile, Nodes, v3[1]); // Print first part of results 
 		}
-		auto begin = chrono::high_resolution_clock::now();
-		Search(Nodes, Edges, "TTTT");
-		auto end = chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-		secondPrint(Nodes, Edges, MyFile, duration.count());
+
+		// count CPU time
+		start = clock();										// Start counting CPU time required for execution of implemented algorithm
+		Search(Nodes, Edges, "TTTT");							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+		end = clock();											// Stop counting CPU time required for execution of implemented algorithm
+		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; // Total CPU time required for execution of implemented algorithm
+		secondPrint(Nodes, Edges, MyFile, cpu_time_used * 1000000); 		// Print second part of results
+
+
+		// count wall time 
+		//auto begin = chrono::high_resolution_clock::now();	// Start counting wall time required for execution of implemented algorithm
+		//Search(Nodes, Edges, "TTTT");							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+		//auto end = chrono::high_resolution_clock::now(); 		// Stop counting wall time required for execution of implemented algorithm
+		//auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); // Total wall time required for execution of implemented algorithm
+		//secondPrint(Nodes, Edges, MyFile, duration.count()); // Print second part of results
 
 	}
 	else {
@@ -391,20 +389,23 @@ int main() {
 		for (int i=0; i<Nodes.size(); i++) {
 			GenerateOneChar(Nodes[i]);
 		}
-		auto begin = chrono::high_resolution_clock::now();
-		Search(TmpNodes, TmpEdges, "TTTT");
-		auto end = chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-		firstPrint(Nodes, Edges, MyFile, TmpNodes, v3[1]);
-		secondPrint(TmpNodes, TmpEdges, MyFile, duration.count());
 
+		// count CPU time
+		start = clock();											// Start counting CPU time required for execution of implemented algorithm
+		Search(TmpNodes, TmpEdges, "TTTT");							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+		end = clock();												// Stop counting CPU time required for execution of implemented algorithm
+		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; 	// Total CPU time required for execution of implemented algorithm
+		secondPrint(TmpNodes, TmpEdges, MyFile, cpu_time_used * 1000000); 		// Print second part of results
+
+
+		// count wall time 
+		//auto begin = chrono::high_resolution_clock::now();	// Start counting wall time required for execution of implemented algorithm
+		//Search(TmpNodes, TmpEdges, "TTTT");					// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+		//auto end = chrono::high_resolution_clock::now(); 		// Stop counting wall time required for execution of implemented algorithm
+		//auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - begin); // Total wall time required for execution of implemented algorithm
+		//secondPrint(TmpNodes, TmpEdges, MyFile, duration.count()); // Print second part of results
 	}
 
-	//Node n;
-	//n.id = 12;
-	//n.value = "TTACGTTTTT";
-	//GenerateOneChar(n);	
 	MyFile.close();
-
 	return 0;
 }

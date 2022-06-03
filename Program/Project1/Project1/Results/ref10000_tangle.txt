@@ -13,4 +13,4 @@ Nodes: 13897
 Edges: 13498
 BPs: 13897
 start algorithm for approximate pattern matching on hypertext
-algorithm took 46616us
+algorithm took 28087us
