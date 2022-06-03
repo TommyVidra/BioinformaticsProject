@@ -41,6 +41,9 @@ using namespace std;
 #define EDGE_LAST_NODE_STARTING_POSITION 6
 #define EDGE_APPENDING_LAST_STARTING_POSITION 8
 
+#define FIRST_TRHESHOLD 100
+#define LAST_TRHESHOLD 100000
+
 struct Node
 {
 	int id;
@@ -62,6 +65,8 @@ vector<Edge> TmpEdges;
 
 map<int, int> DictForInDegreeCount;
 
+vector<string> patterns;
+
 
 
 // *** HELPING FUNCTIONS *** 
@@ -79,6 +84,39 @@ vector<string> splitStr(string s, string delimiter) {
 
     res.push_back (s.substr (pos_start));
     return res;
+}
+
+// Method used for generating test patterns (written by Tomislav Vidović)
+vector<string> getPatterns() {
+	vector<string> patterns;
+	int steps = 11
+    for (int k = 1; k < steps; k++)
+    {
+        int threshold = rand() % LAST_TRHESHOLD + FIRST_TRHESHOLD;
+        string pattern = "";
+
+        for (int i = 0; i < threshold; i++)
+        {
+            int j = rand() % 5 + 1;
+            switch (j)
+            {
+            case 1:
+                pattern += "T";
+                break;
+            case 2:
+                pattern += "A";
+                break;
+            case 3:
+                pattern += "C";
+                break;
+            case 4:
+                pattern += "G";
+                break;
+            }
+        }
+        patterns.push_back(pattern);
+    }
+	return patterns;
 }
 
 // Methos used for printing results part 1 (written by Nina Anić)
@@ -126,7 +164,7 @@ void firstPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, vector
 }
 
 // Methos used for printing results part 2 (written by Nina Anić)
-void secondPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, float duration, int patternSize) {
+void secondPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile) {
 	MyFile << "Nodes: " << Nodes.size() << endl;
 	MyFile << "Edges: " << Edges.size() << endl;
 	MyFile << "BPs: " << Nodes.size() << endl;
@@ -145,7 +183,7 @@ void thirdPrint(ofstream& MyFile, float duration, int patternSize) {
 
 
 // *** GRAPH PARSING ***
-// Method for parsing a linear graph to onechar graph (written by Tomislav )
+// Method for parsing a linear graph to onechar graph (written by Tomislav Vidović)
 void LinearGraphParsing() {
 	string line;
 	ifstream graphFile(LINEAR_GRAPH_PATH);
@@ -183,7 +221,7 @@ void LinearGraphParsing() {
 	}*/
 }
 
-// Method for parsing a OneChar, TwoPath, Snp and Tngle graph
+// Method for parsing a OneChar, TwoPath, Snp and Tngle graph (written by Tomislav Vidović)
 void GraphParsing(string path) {
 	string line;
 	ifstream graphfile(path);
@@ -250,7 +288,7 @@ void GraphParsing(string path) {
 
 }
 
-// Method used to generate multiple nodes and edges from one node for lates analisys
+// Method used to generate multiple nodes and edges from one node for lates analisys (written by Tomislav Vidović)
 void GenerateOneChar(Node node)
 {
 	for (int i = 0; i < node.value.length(); i++)
@@ -307,7 +345,7 @@ void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 			C[0][j] = j;
 			
 			if (i > 0 && j > 0) {
-				string s(1, pattern[i]);
+				string s(1, pattern[i-1]);
 				if (s == Nodes[j-1].value) {
 					C[i][j] = C[i-1][j-1];
 				}
@@ -324,25 +362,25 @@ void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 		}
 	}
 
-	ofstream MyFile("test.txt");
-
-	// print matrix C 
-	for (int i = 0; i < pattern.size()+1; i++) {
-		for (int j = 0; j < Nodes.size()+1; j++) {
-			//cout << C[i][j] << " ";
-			MyFile << C[i][j] << " ";
-		}
-		//cout << endl;
-		MyFile << endl;
-	}
-
-	MyFile.close();
+	//ofstream MyFile("test.txt");
+//
+	//// print matrix C 
+	//for (int i = 0; i < pattern.size()+1; i++) {
+	//	for (int j = 0; j < Nodes.size()+1; j++) {
+	//		//cout << C[i][j] << " ";
+	//		MyFile << C[i][j] << " ";
+	//	}
+	//	//cout << endl;
+	//	MyFile << endl;
+	//}
+//
+	//MyFile.close();
 	free(C);
 }
 
 
 // *** MAIN FUNCTION *** 
-// (written by Nina Anić and )
+// (written by Nina Anić and Tomislav Vidović)
 int main() {	
 	// Helping vectors for different graph types 
 	vector<string> onechar_graphs;
@@ -368,6 +406,8 @@ int main() {
 	clock_t start, end;
 	double cpu_time_used;
 
+	patterns = getPatterns();
+
 	if (found == 1) {
 		if (path == LINEAR_GRAPH_PATH || path == SMALL_EXAMPLE_LINEAR) {
 			LinearGraphParsing();	// Parse graph 
@@ -377,25 +417,16 @@ int main() {
 			GraphParsing(path); 	// Parse graph 
 			firstPrint(Nodes, Edges, MyFile, Nodes, v3[1]); // Print first part of results 
 		}
+		secondPrint(Nodes, Edges, MyFile); 		// Print second part of results
 
-		// count CPU time
-		// clock() --> On Windows it basically runs of the wall clock, while on e.g. Linux it's the process CPU time.
-		start = clock();										// Start counting CPU time required for execution of implemented algorithm
-		string pattern = "TTTT";
-		Search(Nodes, Edges, pattern);							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
-		end = clock();											// Stop counting CPU time required for execution of implemented algorithm
-		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; // Total CPU time required for execution of implemented algorithm
-		secondPrint(Nodes, Edges, MyFile, cpu_time_used * 1000000, pattern.size()); 		// Print second part of results
-		thirdPrint(MyFile, cpu_time_used * 1000000, pattern.size());
-
-
-		// count wall time 
-		//auto begin = chrono::high_resolution_clock::now();	// Start counting wall time required for execution of implemented algorithm
-		//Search(Nodes, Edges, "TTTT");							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
-		//auto end = chrono::high_resolution_clock::now(); 		// Stop counting wall time required for execution of implemented algorithm
-		//auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); // Total wall time required for execution of implemented algorithm
-		//secondPrint(Nodes, Edges, MyFile, duration.count()); // Print second part of results
-
+		for (int i=0; i<patterns.size(); i++) {
+			// count CPU time; clock() --> On Windows it basically runs of the wall clock, while on e.g. Linux it's the process CPU time.
+			start = clock();										// Start counting CPU time required for execution of implemented algorithm
+			Search(Nodes, Edges, patterns[i]);							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+			end = clock();											// Stop counting CPU time required for execution of implemented algorithm
+			cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; // Total CPU time required for execution of implemented algorithm
+			thirdPrint(MyFile, cpu_time_used * 1000000, patterns[i].size());
+		}
 	}
 	else {
 		GraphParsing(path);
@@ -403,23 +434,16 @@ int main() {
 		for (int i=0; i<Nodes.size(); i++) {
 			GenerateOneChar(Nodes[i]);
 		}
+		secondPrint(TmpNodes, TmpEdges, MyFile); 		// Print second part of results
 
-		// count CPU time
-		start = clock();											// Start counting CPU time required for execution of implemented algorithm
-		string pattern = "TTTT";
-		Search(TmpNodes, TmpEdges, pattern);							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
-		end = clock();												// Stop counting CPU time required for execution of implemented algorithm
-		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; 	// Total CPU time required for execution of implemented algorithm
-		secondPrint(TmpNodes, TmpEdges, MyFile, cpu_time_used * 1000000, pattern.size()); 		// Print second part of results
-		thirdPrint(MyFile, cpu_time_used * 1000000, pattern.size());
-
-
-		// count wall time 
-		//auto begin = chrono::high_resolution_clock::now();	// Start counting wall time required for execution of implemented algorithm
-		//Search(TmpNodes, TmpEdges, "TTTT");					// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
-		//auto end = chrono::high_resolution_clock::now(); 		// Stop counting wall time required for execution of implemented algorithm
-		//auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - begin); // Total wall time required for execution of implemented algorithm
-		//secondPrint(TmpNodes, TmpEdges, MyFile, duration.count()); // Print second part of results
+		for (int i=0; i<patterns.size(); i++) {
+			// count CPU time; clock() --> On Windows it basically runs of the wall clock, while on e.g. Linux it's the process CPU time.
+			start = clock();										// Start counting CPU time required for execution of implemented algorithm
+			Search(TmpNodes, TmpEdges, patterns[i]);							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+			end = clock();											// Stop counting CPU time required for execution of implemented algorithm
+			cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; // Total CPU time required for execution of implemented algorithm
+			thirdPrint(MyFile, cpu_time_used * 1000000, patterns[i].size());
+		}
 	}
 
 	MyFile.close();

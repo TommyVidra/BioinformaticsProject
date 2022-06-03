@@ -14,4 +14,38 @@ Edges: 9999
 BPs: 10000
 
 start algorithm for approximate pattern matching on hypertext
-algorithm took 17693us for pattern size of 4 characters
+algorithm took 1.85828e+08us for pattern size of 60109 characters
+
+start algorithm for approximate pattern matching on hypertext
+algorithm took 2.33242e+08us for pattern size of 74413 characters
+start algorithm for approximate pattern matching on hypertext
+algorithm took 8.32129e+07us for pattern size of 26349 characters
+
+sstart algorithm for approximate pattern matching on hypertextaalgorithm took 6.39475e+07us for pattern size of 19884 characters
+sstart algorithm for approximate pattern matching on hypertext
+algorithm took 2.39264e+08us for pattern size of 75107 character
+s
+start algorithm for approximate pattern matching on hypertext
+algorithm took 1.9235e+08us for pattern size of 59237 character
+s
+start algorithm for approximate pattern matching on hypertext
+algorithm took 3.62872e+07us for pattern size of 10962 characte
+start algorithm for approximate pattern matching on hypertext
+algorithm took 2.12718e+08us for pattern size of 64136 characters
+
+start algorithm for approximate pattern matching on hypertext
+algorithm took 1.15447e+08us for pattern size of 34689 characters
+
+stastart algorithm for approximate pattern matching on hypertealgalgorithm took 8.61441e+07us for pattern size of 26421 characte
+stastart algorithm for approximate pattern matching on hypertealgalgorithm took 1.0121e+08us for pattern size of 30486 character
+s
+start algorithm for approximate pattern matching on hypertext
+algorithm took 1.22807e+08us for pattern size of 37653 character
+ststart algorithm for approximate pattern matching on hypertexalalgorithm took 1.01043e+08us for pattern size of 30608 character
+start algorithm for approximate pattern matching on hypertext
+algorithm took 9.90728e+07us for pattern size of 29902 characters
+
+start algorithm for approximate pattern matching on hypertext
+algorithm took 2.43563e+08us for pattern size of 73425 characters
+
+ststart algorithm for approximate pattern matching on hypertexalalgorithm took 2.08316e+08us for pattern size of 64141 characters
