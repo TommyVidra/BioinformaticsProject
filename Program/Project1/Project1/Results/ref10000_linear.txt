@@ -12,5 +12,6 @@ Collapsed edges: 9999
 Nodes: 10000
 Edges: 9999
 BPs: 10000
+
 start algorithm for approximate pattern matching on hypertext
-algorithm took 17394us
+algorithm took 17693us for pattern size of 4 characters

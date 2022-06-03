@@ -7,8 +7,8 @@
 #include <sstream>
 #include <chrono>
 #include <map>
-
 #include <time.h>
+
 using namespace std;
 
 #define FILE_OPENING_ERROR "File oppening error"
@@ -65,7 +65,7 @@ map<int, int> DictForInDegreeCount;
 
 
 // *** HELPING FUNCTIONS *** 
-// Method used for splitting strings
+// Method used for splitting strings (written by Nina Anić)
 vector<string> splitStr(string s, string delimiter) {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     string token;
@@ -81,7 +81,7 @@ vector<string> splitStr(string s, string delimiter) {
     return res;
 }
 
-// Methos used for printing results part 1
+// Methos used for printing results part 1 (written by Nina Anić)
 void firstPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, vector<Node> TmpNodes, string name) {
 	MyFile << "load graph" << endl;
 	MyFile << Nodes.size() << " original nodes" << endl;
@@ -125,19 +125,27 @@ void firstPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, vector
 	MyFile << "Collapsed edges: " << Edges.size() << endl;
 }
 
-// Methos used for printing results part 2
-void secondPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, float duration) {
+// Methos used for printing results part 2 (written by Nina Anić)
+void secondPrint(vector<Node> Nodes, vector<Edge> Edges, ofstream& MyFile, float duration, int patternSize) {
 	MyFile << "Nodes: " << Nodes.size() << endl;
 	MyFile << "Edges: " << Edges.size() << endl;
 	MyFile << "BPs: " << Nodes.size() << endl;
+	//MyFile << "start algorithm for approximate pattern matching on hypertext" << endl;
+	//MyFile << "algorithm took " << duration << "us for pattern size of " << patternSize << " characters" << endl;
+	//MyFile << "############" << endl;
+}
+
+// Methos used for printing results part 3 (written by Nina Anić)
+void thirdPrint(ofstream& MyFile, float duration, int patternSize) {
+	MyFile << endl;
 	MyFile << "start algorithm for approximate pattern matching on hypertext" << endl;
-	MyFile << "algorithm took " << duration << "us" << endl;
+	MyFile << "algorithm took " << duration << "us for pattern size of " << patternSize << " characters" << endl;
 }
 
 
 
 // *** GRAPH PARSING ***
-// Method for parsing a linear graph to onechar graph
+// Method for parsing a linear graph to onechar graph (written by Tomislav )
 void LinearGraphParsing() {
 	string line;
 	ifstream graphFile(LINEAR_GRAPH_PATH);
@@ -272,6 +280,7 @@ void GenerateOneChar(Node node)
 
 // *** ALGORITHM for approximate pattern matching on hypertext ***
 // Implemented method from the work of Gonzalo Navarro (https://www.sciencedirect.com/science/article/pii/S0304397599003333) for approximate pattern matching on hypertext
+// (written by Nina Anić)
 int** Propagate(int previousNode, int nextNode, int i, int** C) {
 	if (C[i][nextNode] > 1 + C[i][previousNode]) {
 		C[i][nextNode] = 1 + C[i][previousNode];
@@ -285,6 +294,7 @@ int** Propagate(int previousNode, int nextNode, int i, int** C) {
 }
 
 // Implemented method from the work of Gonzalo Navarro (https://www.sciencedirect.com/science/article/pii/S0304397599003333) for approximate pattern matching on hypertext
+// (written by Nina Anić)
 void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 	// init matrix C
 	int** C = (int**)malloc((pattern.size() + 1) * sizeof(int * ));
@@ -332,6 +342,7 @@ void Search(vector<Node> Nodes, vector<Edge> Edges, string pattern) {
 
 
 // *** MAIN FUNCTION *** 
+// (written by Nina Anić and )
 int main() {	
 	// Helping vectors for different graph types 
 	vector<string> onechar_graphs;
@@ -368,11 +379,14 @@ int main() {
 		}
 
 		// count CPU time
+		// clock() --> On Windows it basically runs of the wall clock, while on e.g. Linux it's the process CPU time.
 		start = clock();										// Start counting CPU time required for execution of implemented algorithm
-		Search(Nodes, Edges, "TTTT");							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+		string pattern = "TTTT";
+		Search(Nodes, Edges, pattern);							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
 		end = clock();											// Stop counting CPU time required for execution of implemented algorithm
 		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; // Total CPU time required for execution of implemented algorithm
-		secondPrint(Nodes, Edges, MyFile, cpu_time_used * 1000000); 		// Print second part of results
+		secondPrint(Nodes, Edges, MyFile, cpu_time_used * 1000000, pattern.size()); 		// Print second part of results
+		thirdPrint(MyFile, cpu_time_used * 1000000, pattern.size());
 
 
 		// count wall time 
@@ -392,10 +406,12 @@ int main() {
 
 		// count CPU time
 		start = clock();											// Start counting CPU time required for execution of implemented algorithm
-		Search(TmpNodes, TmpEdges, "TTTT");							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
+		string pattern = "TTTT";
+		Search(TmpNodes, TmpEdges, pattern);							// Execute algorithm described in https://www.sciencedirect.com/science/article/pii/S0304397599003333
 		end = clock();												// Stop counting CPU time required for execution of implemented algorithm
 		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; 	// Total CPU time required for execution of implemented algorithm
-		secondPrint(TmpNodes, TmpEdges, MyFile, cpu_time_used * 1000000); 		// Print second part of results
+		secondPrint(TmpNodes, TmpEdges, MyFile, cpu_time_used * 1000000, pattern.size()); 		// Print second part of results
+		thirdPrint(MyFile, cpu_time_used * 1000000, pattern.size());
 
 
 		// count wall time 
