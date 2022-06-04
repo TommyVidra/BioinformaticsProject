@@ -1,0 +1,16 @@
+load graph
+2998 original nodes
+2998 split nodes
+10999bp
+3996 edges
+999 nodes with in-degree >= 2
+load reads
+preprocess graph
+The graph is a DAG
+Collapsed nodes: 2998
+Collapsed edges: 3996
+Nodes: 10999
+Edges: 8001
+BPs: 10999
+start algorithm for approximate pattern matching on hypertext
+algorithm took 19645us
